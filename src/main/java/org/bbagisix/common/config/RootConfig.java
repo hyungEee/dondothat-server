@@ -63,7 +63,7 @@ public class RootConfig {
 	String dbName;
 	@Value("${DB_USER:root}")
 	String username;
-	@Value("${DB_PASSWORD:1234}")
+	@Value("${DB_PASSWORD:cjh011017}")
 	String password;
 
 	@Value("${REDIS_HOST:localhost}")
@@ -71,13 +71,13 @@ public class RootConfig {
 	@Value("${REDIS_PORT:6379}")
 	private int redisPort;
 
-	@Value("${SPRING_MAIL_HOST}")
+	@Value("${SPRING_MAIL_HOST:smtp.gmail.com}")
 	private String mailHost;
-	@Value("${SPRING_MAIL_PORT}")
+	@Value("${SPRING_MAIL_PORT:587}")
 	private int mailPort;
-	@Value("${SPRING_MAIL_USERNAME}")
+	@Value("${SPRING_MAIL_USERNAME:test@gmail.com}")
 	private String mailUsername;
-	@Value("${SPRING_MAIL_PASSWORD}")
+	@Value("${SPRING_MAIL_PASSWORD:test}")
 	private String mailPassword;
 
 	// OAuth 환경 변수
@@ -91,7 +91,7 @@ public class RootConfig {
 	private String naverClientSecret;
 	@Value("${BASE_URL:}")
 	private String baseUrl;
-	@Value("${JWT_SECRET}")
+	@Value("${JWT_SECRET:your-jwt-secret-key-for-local-development-only}")
 	private String jwtSecret;
 
 	// CODEF 환경 변수
@@ -103,9 +103,9 @@ public class RootConfig {
 	private String codefPublicKey;
 
 	// FSS API 환경 변수
-	@Value("${FSS_API_KEY}")
+	@Value("${FSS_API_KEY:test-api-key}")
 	private String fssApiKey;
-	@Value("${FSS_API_URL}")
+	@Value("${FSS_API_URL:https://finstat.or.kr/}")
 	private String fssApiUrl;
 
 	@Bean

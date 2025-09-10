@@ -100,22 +100,61 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 		http.addFilterBefore(new JWTFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
-		// OAuth2 로그인 설정
-		http.oauth2Login()
-			.clientRegistrationRepository(clientRegistrationRepository(environment))
-			.userInfoEndpoint()
-			.userService(customOAuth2UserService)
-			.and()
-			.successHandler(customOAuth2SuccessHandler)
-			.failureUrl("/oauth2-login?error");
+		// OAuth2 로그인 설정 - 클라이언트 ID가 있을 때만 활성화
+		String googleClientId = environment.getProperty("GOOGLE_CLIENT_ID");
+		String naverClientId = environment.getProperty("NAVER_CLIENT_ID");
+		
+		if ((googleClientId != null && !googleClientId.trim().isEmpty()) || 
+			(naverClientId != null && !naverClientId.trim().isEmpty())) {
+			http.oauth2Login()
+				.clientRegistrationRepository(clientRegistrationRepository())
+				.userInfoEndpoint()
+				.userService(customOAuth2UserService)
+				.and()
+				.successHandler(customOAuth2SuccessHandler)
+				.failureUrl("/oauth2-login?error");
+		}
 	}
 
 	@Bean
-	public static ClientRegistrationRepository clientRegistrationRepository(Environment environment) {
-		return new InMemoryClientRegistrationRepository(
-			googleClientRegistration(environment),
-			naverClientRegistration(environment)
-		);
+	public ClientRegistrationRepository clientRegistrationRepository() {
+		// OAuth 클라이언트 ID가 설정된 경우에만 등록
+		String googleClientId = environment.getProperty("GOOGLE_CLIENT_ID");
+		String naverClientId = environment.getProperty("NAVER_CLIENT_ID");
+		
+		// 설정된 클라이언트만 추가
+		if (googleClientId != null && !googleClientId.trim().isEmpty() &&
+			naverClientId != null && !naverClientId.trim().isEmpty()) {
+			return new InMemoryClientRegistrationRepository(
+				googleClientRegistration(environment),
+				naverClientRegistration(environment)
+			);
+		} else if (googleClientId != null && !googleClientId.trim().isEmpty()) {
+			return new InMemoryClientRegistrationRepository(
+				googleClientRegistration(environment)
+			);
+		} else if (naverClientId != null && !naverClientId.trim().isEmpty()) {
+			return new InMemoryClientRegistrationRepository(
+				naverClientRegistration(environment)
+			);
+		}
+		
+		// 둘 다 없으면 더미 클라이언트 등록 생성
+		ClientRegistration dummyClient = ClientRegistration.withRegistrationId("dummy")
+			.clientId("dummy-client-id")
+			.clientSecret("dummy-client-secret")
+			.clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+			.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+			.redirectUri("http://localhost:8080/login/oauth2/code/dummy")
+			.scope("read")
+			.authorizationUri("https://example.com/oauth/authorize")
+			.tokenUri("https://example.com/oauth/token")
+			.userInfoUri("https://example.com/oauth/userinfo")
+			.userNameAttributeName("id")
+			.clientName("Dummy")
+			.build();
+			
+		return new InMemoryClientRegistrationRepository(dummyClient);
 	}
 
 	@Bean
