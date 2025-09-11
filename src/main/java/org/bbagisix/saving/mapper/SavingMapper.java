@@ -8,4 +8,6 @@ public interface SavingMapper {
 	List<SavingDTO> getSavingHistory(Long userId);
 
 	Long getTotalSaving(Long userId);
+
+	void insertSavingLedger(Long userChallengeId, Long userId, Long amount);
 }

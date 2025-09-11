@@ -18,4 +18,8 @@
         where user_id = #{userId}
           and status = 'sub'
     </select>
+    <insert id="insertSavingLedger" parameterType="long">
+        insert into saving_ledger(user_challenge_id, user_id, amount)
+        values (#{userChallengeId},#{userId},#{amount})
+    </insert>
 </mapper>
