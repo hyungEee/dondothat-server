@@ -47,27 +47,30 @@ public class SavingService {
 	@Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
 	public void updateSaving(Long userId, Long userChallengeId) {
 
-		try {// 해당 userChallenge 조회
-			UserChallengeVO userChallenge;
-			userChallenge = challengeMapper.getUserChallengeById(userChallengeId);
-			if (userChallenge == null)
-				throw new BusinessException(ErrorCode.CHALLENGE_NOT_FOUND);
-			if (!userChallenge.getUserId().equals(userId))
-				throw new BusinessException(ErrorCode.SAVING_UPDATE_DENIED);
-			Long totalSaving = userChallenge.getSaving() * userChallenge.getPeriod();
+		// 해당 userChallenge 조회
+		UserChallengeVO userChallenge;
+		userChallenge = challengeMapper.getUserChallengeById(userChallengeId);
+		if (userChallenge == null)
+			throw new BusinessException(ErrorCode.CHALLENGE_NOT_FOUND);
+		if (!userChallenge.getUserId().equals(userId))
+			throw new BusinessException(ErrorCode.SAVING_UPDATE_DENIED);
 
-			// balance update
-			int updated = assetMapper.updateSavingAssetBalance(userId, totalSaving);
-			if (updated != 1) {
-				throw new BusinessException(ErrorCode.SAVING_UPDATE_FAILED);
-			}
+		Long totalSaving = userChallenge.getSaving() * userChallenge.getPeriod();
 
-		} catch (BusinessException be) {
-			throw be;
-		} catch (Exception e) {
-			log.error("asset(저금통) balance 업데이트 중 알 수 없는 오류 발생: error={}", e.getMessage(), e);
-			throw new BusinessException(ErrorCode.DATA_ACCESS_ERROR, e);
+		// saving ledger insert(저금내역 저장 및 멱등처리)
+		try{
+			savingMapper.insertSavingLedger(userChallengeId,userId,totalSaving);
+		}catch(org.springframework.dao.DuplicateKeyException e){ // 중복키가 있을 시 리턴
+			log.info("Idempotent hit: userChallengeId={} userId={}", userChallengeId, userId);
+			return;
 		}
+
+		// balance update
+		int updated = assetMapper.updateSavingAssetBalance(userId, totalSaving);
+		if (updated != 1) {
+			throw new BusinessException(ErrorCode.SAVING_UPDATE_FAILED);
+		}
+
 	}
 
 }
