@@ -36,5 +36,5 @@ public interface AssetMapper {
 	);
 
 	// 저금통 계좌 잔액 업데이트(아낀금액만큼 증가)
-	int updateSavingAssetBalance(@Param("assetId") Long assetId, @Param("totalSaving") Long totalSaving);
+	int updateSavingAssetBalance(@Param("userId") Long userId, @Param("totalSaving") Long totalSaving);
 }

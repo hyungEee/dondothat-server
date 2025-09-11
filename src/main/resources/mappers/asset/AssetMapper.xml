@@ -143,7 +143,7 @@
     <update id="updateSavingAssetBalance">
         UPDATE user_asset
         SET balance=balance + #{totalSaving}
-        WHERE asset_id = #{assetId}
+        WHERE user_id = #{userId} and status='sub'
     </update>
 
 </mapper>
