@@ -150,6 +150,18 @@ CREATE TABLE `saving_option` (
                                  UNIQUE KEY `uk_saving_option` (`fin_co_no`, `fin_prdt_cd`, `save_trm`, `rsrv_type`, `dcls_month`)
 );
 
+-- 저금 원장 테이블
+CREATE TABLE `saving_ledger` (
+                                 `ledger_id` BIGINT NOT NULL AUTO_INCREMENT,
+                                 `user_challenge_id` BIGINT NOT NULL, -- 멱등 제어 키
+                                 `user_id` BIGINT NOT NULL,
+                                 `amount` BIGINT NOT NULL,
+                                 `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                 PRIMARY KEY (`ledger_id`),
+                                 UNIQUE KEY `uk_ledger_uc` (`user_challenge_id`),
+                                 KEY `idx_ledger_user_created`(`user_id`,`created_at`) -- 저금내역 조회 성능을 위한 인덱싱
+);
+
 ALTER TABLE `user` ADD CONSTRAINT `fk_user_tier`
     FOREIGN KEY (`tier_id`) REFERENCES `tier`(`tier_id`) ON DELETE SET NULL;
 
@@ -184,3 +196,10 @@ ALTER TABLE `saving_option` ADD CONSTRAINT `fk_option_to_base`
     FOREIGN KEY (`saving_base_id`) REFERENCES `saving_base`(`saving_base_id`)
         ON DELETE RESTRICT -- 부모(base) 데이터 삭제 시 자식(option)이 있으면 삭제를 막음 (안전장치)
         ON UPDATE CASCADE; -- 부모(base) 데이터의 id가 바뀌면 자식(option)의 id도 함께 변경
+
+-- saving_ledger 제약조건
+ALTER TABLE `saving_ledger` ADD CONSTRAINT  `fk_ledger_user_challenge`
+    FOREIGN KEY (`user_challenge_id`) REFERENCES `user_challenge`(`user_challenge_id`) ON DELETE RESTRICT;
+
+ALTER TABLE `saving_ledger` ADD CONSTRAINT  `fk_ledger_user`
+    FOREIGN KEY (`user_id`) REFERENCES `user`(`user_id`) ON DELETE RESTRICT;
