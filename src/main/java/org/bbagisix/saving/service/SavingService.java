@@ -11,6 +11,7 @@ import org.bbagisix.common.exception.ErrorCode;
 import org.bbagisix.saving.dto.SavingDTO;
 import org.bbagisix.saving.mapper.SavingMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
@@ -43,7 +44,7 @@ public class SavingService {
 		}
 	}
 
-	@Transactional(rollbackFor = Exception.class)
+	@Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
 	public void updateSaving(Long userId, Long userChallengeId) {
 
 		try {// 해당 userChallenge 조회
@@ -55,14 +56,8 @@ public class SavingService {
 				throw new BusinessException(ErrorCode.SAVING_UPDATE_DENIED);
 			Long totalSaving = userChallenge.getSaving() * userChallenge.getPeriod();
 
-			// user 계좌(sub) 조회
-			AssetVO asset;
-			asset = assetMapper.selectAssetByUserIdAndStatus(userId, "sub");
-			if (asset == null)
-				throw new BusinessException(ErrorCode.ASSET_NOT_FOUND);
-
 			// balance update
-			int updated = assetMapper.updateSavingAssetBalance(asset.getAssetId(), totalSaving);
+			int updated = assetMapper.updateSavingAssetBalance(userId, totalSaving);
 			if (updated != 1) {
 				throw new BusinessException(ErrorCode.SAVING_UPDATE_FAILED);
 			}
