@@ -68,7 +68,8 @@ CREATE TABLE `user_asset` (
                               `bank_pw` TEXT NOT NULL,
                               `connected_id` TEXT NULL,
                               `status` ENUM('main', 'sub') NOT NULL,
-                              PRIMARY KEY (`asset_id`)
+                              PRIMARY KEY (`asset_id`),
+                              UNIQUE KEY `uq_user_status` (`user_id`,`status`) -- 유저 당 메인/서브 계좌는 각 1개씩만
 );
 
 CREATE TABLE `expenditure` (
